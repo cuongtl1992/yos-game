@@ -1,0 +1,36 @@
+    body {
+        margin: 0;
+        overflow: hidden;
+        background-color: black;
+    }
+    
+    #onboarding-screen, #loading-screen {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #ff0000;
+        padding: 30px;
+        border-radius: 10px;
+        color: white;
+        text-align: center;
+    }
+    
+    #game-container {
+        width: 100vw;
+        height: 100vh;
+        display: none; /* Show only after loading */
+    }
+    
+    #playerNameInput {
+        padding: 10px;
+        font-size: 16px;
+    }
+
+    button {
+        padding: 10px 20px;
+        font-size: 18px;
+        background: gold;
+        border: none;
+        cursor: pointer;
+    }

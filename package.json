@@ -1,0 +1,24 @@
+{
+  "name": "yos-game",
+  "version": "1.0.0",
+  "description": "The small game create with AI support for year of snake (2025)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "Year",
+    "of",
+    "snake",
+    "happy",
+    "lunar",
+    "new",
+    "year",
+    "cuongtl"
+  ],
+  "author": "cuongtl",
+  "license": "ISC",
+  "devDependencies": {
+    "phaser": "^3.87.0"
+  }
+}
