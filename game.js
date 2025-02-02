@@ -1,10 +1,8 @@
 const moneyValues = [
-  { value: 1000, weight: 30 }, // 30% xuất hiện
-  { value: 2000, weight: 25 }, // 25% xuất hiện
-  { value: 5000, weight: 20 }, // 20% xuất hiện
-  { value: 10000, weight: 15 }, // 15% xuất hiện
-  { value: 20000, weight: 7 }, // 7% xuất hiện
-  { value: 50000, weight: 3 }, // 3% xuất hiện (hiếm nhất)
+  { value: 5000, weight: 50 }, // 50% xuất hiện
+  { value: 10000, weight: 30 }, // 30% xuất hiện
+  { value: 20000, weight: 15 }, // 15% xuất hiện
+  { value: 50000, weight: 5 }, // 5% xuất hiện (hiếm nhất)
 ];
 
 function formatCurrency(value) {
@@ -74,24 +72,16 @@ class LeaderboardScene extends Phaser.Scene {
 
   create() {
     this.add
-      .image(
-        this.scale.width / 2,
-        this.scale.height / 2,
-        'leader_boarđ'
-      )
+      .image(this.scale.width / 2, this.scale.height / 2, 'leader_boarđ')
       .setScale(0.8)
       .setOrigin(0.5);
-    
-    this.add.text(
-      (this.scale.width / 2) - 110,
-      0,
-      'Bảng xếp hạng',
-      {
-        fontSize: '32px',
-        fill: '#fafbe0',
-        fontStyle: 'bold',
-        padding: { x: 0, y: 145 },
-      });
+
+    this.add.text(this.scale.width / 2 - 110, 0, 'Bảng xếp hạng', {
+      fontSize: '32px',
+      fill: '#fafbe0',
+      fontStyle: 'bold',
+      padding: { x: 0, y: 145 },
+    });
 
     let scores = JSON.parse(localStorage.getItem('leaderboard')) || [];
     scores.sort((a, b) => b.score - a.score);
@@ -110,7 +100,10 @@ class LeaderboardScene extends Phaser.Scene {
 
     let displayScores = (filteredScores) => {
       this.children.list.forEach((child) => {
-        if (child.type === 'Text' && (child.name.startsWith('score') || child.name.startsWith('player'))) {
+        if (
+          child.type === 'Text' &&
+          (child.name.startsWith('score') || child.name.startsWith('player'))
+        ) {
           child.destroy();
         }
       });
@@ -118,36 +111,38 @@ class LeaderboardScene extends Phaser.Scene {
       // Temp don't know why this fixed overlap when remove text
       for (let i = 0; i < this.children.list.length; i++) {
         const child = this.children.list[i];
-        if (child.type === 'Text' && (child.name.startsWith('score') || child.name.startsWith('player'))) {
+        if (
+          child.type === 'Text' &&
+          (child.name.startsWith('score') || child.name.startsWith('player'))
+        ) {
           child.destroy();
         }
       }
 
       filteredScores.forEach((score, index) => {
-        this.add.text(
-          (this.scale.width / 2) - 210,
-          300 + index * 45,
-          `${score.name}`,
-          {
+        this.add
+          .text(this.scale.width / 2 - 210, 300 + index * 45, `${score.name}`, {
             fontSize: '24px',
             fill: '#231C1E',
             fontStyle: 'bold',
             padding: { x: 0, y: 0 },
             align: 'left',
-          }
-        ).setName(`player${index}`);
+          })
+          .setName(`player${index}`);
 
-        this.add.text(
-          (this.scale.width / 2) + 120,
-          300 + index * 45,
-          `${formatCurrency(score.score)}`,
-          {
-            fontSize: '24px',
-            fill: '#231C1E',
-            fontStyle: 'bold',
-            align: 'right',
-          }
-        ).setName(`score${index}`);
+        this.add
+          .text(
+            this.scale.width / 2 + 120,
+            300 + index * 45,
+            `${formatCurrency(score.score)}`,
+            {
+              fontSize: '24px',
+              fill: '#231C1E',
+              fontStyle: 'bold',
+              align: 'right',
+            }
+          )
+          .setName(`score${index}`);
       });
     };
 
@@ -164,7 +159,10 @@ class LeaderboardScene extends Phaser.Scene {
     this.events.on('shutdown', () => {
       searchInput.remove();
       this.children.list.forEach((child) => {
-        if (child.type === 'Text' && (child.name.startsWith('score') || child.name.startsWith('player'))) {
+        if (
+          child.type === 'Text' &&
+          (child.name.startsWith('score') || child.name.startsWith('player'))
+        ) {
           child.destroy();
         }
       });
@@ -332,8 +330,8 @@ class GameScene extends Phaser.Scene {
       .image(this.scale.width / 2 + 400, this.scale.height / 2 - 375, 'cup')
       .setOrigin(0, 0)
       .setScale(0.15);
-    
-      this.add
+
+    this.add
       .text(this.scale.width / 2 + 409, this.scale.height / 2 - 370, ' ', {
         fontSize: '24px',
         fill: '#ff0000',
@@ -343,7 +341,7 @@ class GameScene extends Phaser.Scene {
       .on('pointerdown', () => {
         this.scene.start('LeaderboardScene');
       });
-    
+
     // Add logo kv dev
     this.add
       .image(this.scale.width / 2 - 40, this.scale.height / 2 - 80, 'logo_dev')
@@ -471,23 +469,63 @@ class GameScene extends Phaser.Scene {
 
   // Tạo bao lì xì (có thể là tốt hoặc xấu)
   spawnEnvelope() {
-    let isGood = Phaser.Math.Between(0, 1) === 0; // 50% bao lì xì tốt, 50% bao lì xì xấu
+    let badChance = this.getBadEnvelopeChance();
+    let isGood = Phaser.Math.Between(0, 100) > badChance;
+    let speed = this.getEnvelopeSpeed();
+
+    let spawnX = Phaser.Math.Between(330, 1050);
     let envelope = this.envelopes.create(
-      Phaser.Math.Between(330, 1050),
+      spawnX,
       0,
       isGood ? 'good_envelope' : 'bad_envelope'
     );
     envelope.setScale(isGood ? 0.15 : 0.2);
-    envelope.setVelocityY(300);
+    envelope.setVelocityY(speed);
     envelope.isGood = isGood;
+
+    // Nếu tổng tiền >= 50k, đôi khi sẽ rơi 2-3 bao lì xì
+    if (this.totalMoney >= 50000 && Phaser.Math.Between(0, 100) > 60) {
+      let extraCount = Phaser.Math.Between(1, 2); // Rơi thêm 1 hoặc 2 bao lì xì
+      let hasBadEnvelope = false;
+
+      for (let i = 0; i < extraCount; i++) {
+        let extraIsGood = Phaser.Math.Between(0, 100) > badChance;
+
+        // Đảm bảo ít nhất một bao lì xì xấu nếu có nhiều bao lì xì rơi cùng lúc
+        if (i === extraCount - 1 && !hasBadEnvelope) {
+          extraIsGood = false; // Ép một cái phải là dép
+        }
+
+        if (!extraIsGood) {
+          hasBadEnvelope = true; // Đánh dấu đã có dép xuất hiện
+        }
+
+        let extraEnvelope = this.envelopes.create(
+          Phaser.Math.Between(330, 1050),
+          0,
+          extraIsGood ? 'good_envelope' : 'bad_envelope'
+        );
+        extraEnvelope.setScale(extraIsGood ? 0.15 : 0.2);
+        extraEnvelope.setVelocityY(speed + Phaser.Math.Between(50, 100));
+        extraEnvelope.isGood = extraIsGood;
+      }
+    }
   }
 
   // Xử lý khi bắt được bao lì xì
   collectEnvelope(player, envelope) {
     if (envelope.isGood) {
       let amount = pickMoneyValue(); // Random giá trị tiền
-      this.totalMoney += amount;
-      this.showMoneyEffect(`Húp\n${amount.toLocaleString()}đ :v`, '#057500');
+
+      if (this.totalMoney + amount > 100000) {
+        amount = 100000 - this.totalMoney;
+      }
+
+      if (amount > 0) {
+        // Chỉ hiển thị nếu số tiền > 0
+        this.totalMoney += amount;
+        this.showMoneyEffect(`Húp\n${amount.toLocaleString()}đ :v`, '#057500');
+      }
     } else {
       let penalty = pickMoneyValue(); // Random số tiền bị mất
       this.totalMoney -= penalty;
@@ -539,6 +577,20 @@ class GameScene extends Phaser.Scene {
       this.scene.start('ResultScene');
     }
   }
+
+  getEnvelopeSpeed() {
+    if (this.totalMoney < 40000) return 300;
+    if (this.totalMoney < 70000) return 450;
+    if (this.totalMoney < 90000) return 600;
+    return 750; // Khi gần 100,000 VND, tốc độ nhanh nhất
+  }
+
+  getBadEnvelopeChance() {
+    if (this.totalMoney < 40000) return 40;
+    if (this.totalMoney < 70000) return 55;
+    if (this.totalMoney < 90000) return 65;
+    return 80; // Khi gần 100,000 VND, dép xuất hiện nhiều hơn
+  }
 }
 
 const config = {
@@ -546,7 +598,7 @@ const config = {
   width: window.innerWidth,
   height: window.innerHeight,
   physics: { default: 'arcade' },
-  scene: [GameScene, LeaderboardScene, StartScene, ResultScene],
+  scene: [StartScene, GameScene, LeaderboardScene , ResultScene],
 };
 
 const game = new Phaser.Game(config);
