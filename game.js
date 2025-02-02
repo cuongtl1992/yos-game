@@ -68,8 +68,30 @@ class LeaderboardScene extends Phaser.Scene {
     super({ key: 'LeaderboardScene' });
   }
 
+  preload() {
+    this.load.image('leader_boarđ', 'assets/leader_board_screen.png');
+  }
+
   create() {
-    this.add.text(250, 50, 'Bảng Xếp Hạng', { fontSize: '32px', fill: '#fff' });
+    this.add
+      .image(
+        this.scale.width / 2,
+        this.scale.height / 2,
+        'leader_boarđ'
+      )
+      .setScale(0.8)
+      .setOrigin(0.5);
+    
+    this.add.text(
+      (this.scale.width / 2) - 110,
+      0,
+      'Bảng xếp hạng',
+      {
+        fontSize: '32px',
+        fill: '#fafbe0',
+        fontStyle: 'bold',
+        padding: { x: 0, y: 145 },
+      });
 
     let scores = JSON.parse(localStorage.getItem('leaderboard')) || [];
     scores.sort((a, b) => b.score - a.score);
@@ -78,27 +100,54 @@ class LeaderboardScene extends Phaser.Scene {
     searchInput.type = 'text';
     searchInput.placeholder = 'Tìm kiếm tên...';
     searchInput.style.position = 'absolute';
-    searchInput.style.top = '10%';
-    searchInput.style.left = '40%';
+    searchInput.style.top = '31%';
+    searchInput.style.left = '39%';
     searchInput.style.fontSize = '20px';
     searchInput.style.border = 'none';
+    searchInput.style.width = '300px';
     searchInput.style.background = 'none';
     document.body.appendChild(searchInput);
 
     let displayScores = (filteredScores) => {
-      this.children.list.forEach(child => {
-      if (child.type === 'Text' && child.y > 100) {
-        child.destroy();
-      }
+      this.children.list.forEach((child) => {
+        if (child.type === 'Text' && (child.name.startsWith('score') || child.name.startsWith('player'))) {
+          child.destroy();
+        }
       });
 
+      // Temp don't know why this fixed overlap when remove text
+      for (let i = 0; i < this.children.list.length; i++) {
+        const child = this.children.list[i];
+        if (child.type === 'Text' && (child.name.startsWith('score') || child.name.startsWith('player'))) {
+          child.destroy();
+        }
+      }
+
       filteredScores.forEach((score, index) => {
-      this.add.text(
-        250,
-        100 + index * 30,
-        `${score.name}: ${formatCurrency(score.score)} VND`,
-        { fontSize: '24px', fill: '#fff' }
-      );
+        this.add.text(
+          (this.scale.width / 2) - 210,
+          300 + index * 45,
+          `${score.name}`,
+          {
+            fontSize: '24px',
+            fill: '#231C1E',
+            fontStyle: 'bold',
+            padding: { x: 0, y: 0 },
+            align: 'left',
+          }
+        ).setName(`player${index}`);
+
+        this.add.text(
+          (this.scale.width / 2) + 120,
+          300 + index * 45,
+          `${formatCurrency(score.score)}`,
+          {
+            fontSize: '24px',
+            fill: '#231C1E',
+            fontStyle: 'bold',
+            align: 'right',
+          }
+        ).setName(`score${index}`);
       });
     };
 
@@ -106,20 +155,31 @@ class LeaderboardScene extends Phaser.Scene {
 
     searchInput.addEventListener('input', () => {
       let searchTerm = searchInput.value.trim().toLowerCase();
-      let filteredScores = scores.filter(score =>
-      score.name.toLowerCase().includes(searchTerm)
+      let filteredScores = scores.filter((score) =>
+        score.name.toLowerCase().includes(searchTerm)
       );
       displayScores(filteredScores);
     });
 
     this.events.on('shutdown', () => {
       searchInput.remove();
-      this.children.list.forEach(child => {
-        if (child.type === 'Text' && child.y > 100) {
+      this.children.list.forEach((child) => {
+        if (child.type === 'Text' && (child.name.startsWith('score') || child.name.startsWith('player'))) {
           child.destroy();
         }
       });
     });
+
+    this.add
+      .text(this.scale.width / 2 - 170, this.scale.height / 2 + 300, ' ', {
+        fontSize: '24px',
+        fill: '#ff0000',
+        padding: { x: 160, y: 20 },
+      })
+      .setInteractive({ cursor: 'pointer' })
+      .on('pointerdown', () => {
+        this.scene.start('StartScene');
+      });
   }
 }
 
@@ -135,36 +195,108 @@ class ResultScene extends Phaser.Scene {
   create() {
     this.add
       .image(this.scale.width / 2, this.scale.height / 2, 'game_over')
-      .setScale(0.75)
+      .setScale(0.8)
       .setOrigin(0.5);
 
     let playerName = localStorage.getItem('playerName');
     let playerScore = localStorage.getItem('playerScore');
 
     this.add.text(
-      550,
-      650,
-      `${playerName} nhận được: ${formatCurrency(playerScore)} VND`,
+      this.scale.width / 2 - 180,
+      this.scale.height / 2 - 50,
+      `Chúc mừng ${playerName} nhận được`,
       {
         fontSize: '24px',
-        fill: '#fff',
+        fill: '#6C070E',
+        align: 'center',
       }
     );
 
+    this.add.text(
+      this.scale.width / 2 - 180,
+      this.scale.height / 2,
+      `${formatCurrency(playerScore)} VND`,
+      {
+        fontSize: '24px',
+        fill: '#6C070E',
+        padding: { x: 100, y: 0 },
+        align: 'center',
+        fontStyle: 'bold',
+      }
+    );
+
+    this.add.text(
+      this.scale.width / 2 - 190,
+      this.scale.height / 2,
+      `AN KHANG - THỊNH VƯỢNG\nVẠN SỰ NHƯ Ý`,
+      {
+        fontSize: '30px',
+        fill: '#6C070E',
+        padding: { x: 0, y: 50 },
+        align: 'center',
+        fontStyle: 'bold',
+      }
+    );
+
+    this.add.text(
+      this.scale.width / 2 - 45,
+      this.scale.height / 2 - 300,
+      `2025`,
+      {
+        fontSize: '48px',
+        fill: '#D4CCC3',
+        padding: { x: 0, y: 0 },
+        align: 'center',
+        fontStyle: 'bold',
+      }
+    );
+
+    this.add.text(
+      this.scale.width / 2 - 120,
+      this.scale.height / 2 - 205,
+      `Xuân Ất Tỵ - 2025`,
+      {
+        fontSize: '24px',
+        fill: '#D4CCC3',
+        padding: { x: 0, y: 0 },
+        align: 'center',
+        fontStyle: 'bold',
+      }
+    );
+
+    // Continue button
     this.add
-      .text(300, 450, 'Lưu điểm', {
+      .text(this.scale.width / 2 - 220, this.scale.height / 2 + 250, ' ', {
         fontSize: '24px',
         fill: '#ff0000',
-        backgroundColor: '#ffffff',
-        padding: { x: 10, y: 5 },
+        padding: { x: 90, y: 20 },
       })
-      .setInteractive()
+      .setInteractive({ cursor: 'pointer' })
       .on('pointerdown', () => {
-        let scores = JSON.parse(localStorage.getItem('leaderboard')) || [];
-        scores.push({ name: playerName, score: playerScore });
-        localStorage.setItem('leaderboard', JSON.stringify(scores));
+        this.saveScore();
+        this.scene.start('GameScene');
+      });
+
+    // Show leaderboard button
+    this.add
+      .text(this.scale.width / 2 + 20, this.scale.height / 2 + 250, ' ', {
+        fontSize: '24px',
+        fill: '#ff0000',
+        padding: { x: 90, y: 20 },
+      })
+      .setInteractive({ cursor: 'pointer' })
+      .on('pointerdown', () => {
+        this.saveScore();
         this.scene.start('LeaderboardScene');
       });
+  }
+
+  saveScore() {
+    let playerName = localStorage.getItem('playerName');
+    let playerScore = localStorage.getItem('playerScore');
+    let scores = JSON.parse(localStorage.getItem('leaderboard')) || [];
+    scores.push({ name: playerName, score: playerScore });
+    localStorage.setItem('leaderboard', JSON.stringify(scores));
   }
 }
 
@@ -185,6 +317,8 @@ class GameScene extends Phaser.Scene {
     this.load.image('label_bg', 'assets/label_bg.png');
     this.load.image('logo_dev', 'assets/logo_dev.png');
     this.load.image('chat', 'assets/chat.png');
+    this.load.image('chill_1', 'assets/chill_1.png');
+    this.load.image('cup', 'assets/cup.png');
   }
 
   create() {
@@ -192,12 +326,35 @@ class GameScene extends Phaser.Scene {
       .image(0, 0, 'background')
       .setOrigin(0)
       .setDisplaySize(this.scale.width, this.scale.height);
+
+    // Add cup go to leader board
+    this.add
+      .image(this.scale.width / 2 + 400, this.scale.height / 2 - 375, 'cup')
+      .setOrigin(0, 0)
+      .setScale(0.15);
+    
+      this.add
+      .text(this.scale.width / 2 + 409, this.scale.height / 2 - 370, ' ', {
+        fontSize: '24px',
+        fill: '#ff0000',
+        padding: { x: 23, y: 18 },
+      })
+      .setInteractive({ cursor: 'pointer' })
+      .on('pointerdown', () => {
+        this.scene.start('LeaderboardScene');
+      });
     
     // Add logo kv dev
     this.add
-      .image((this.scale.width / 2) - 40, (this.scale.height / 2) - 80, 'logo_dev')
+      .image(this.scale.width / 2 - 40, this.scale.height / 2 - 80, 'logo_dev')
       .setOrigin(0, 0)
       .setScale(0.1);
+
+    // Add chill 1
+    this.add
+      .image(80, this.scale.height / 2 - 15, 'chill_1')
+      .setOrigin(0)
+      .setScale(0.4);
 
     // Nhân vật người chơi
     this.player = this.physics.add
@@ -321,7 +478,7 @@ class GameScene extends Phaser.Scene {
       isGood ? 'good_envelope' : 'bad_envelope'
     );
     envelope.setScale(isGood ? 0.15 : 0.2);
-    envelope.setVelocityY(200);
+    envelope.setVelocityY(300);
     envelope.isGood = isGood;
   }
 
@@ -330,12 +487,15 @@ class GameScene extends Phaser.Scene {
     if (envelope.isGood) {
       let amount = pickMoneyValue(); // Random giá trị tiền
       this.totalMoney += amount;
-      this.showMoneyEffect(`Mình xin\n${amount.toLocaleString()}đ :v`, '#057500');
+      this.showMoneyEffect(`Húp\n${amount.toLocaleString()}đ :v`, '#057500');
     } else {
       let penalty = pickMoneyValue(); // Random số tiền bị mất
       this.totalMoney -= penalty;
       if (this.totalMoney < 0) this.totalMoney = 0;
-      this.showMoneyEffect(`Rơi mất\n${penalty.toLocaleString()}đ :(`, '#ff0000');
+      this.showMoneyEffect(
+        `Rơi mất\n${penalty.toLocaleString()}đ :(`,
+        '#ff0000'
+      );
     }
 
     this.moneyText.setText(
@@ -346,16 +506,21 @@ class GameScene extends Phaser.Scene {
 
   // Hiển thị hiệu ứng số tiền khi bắt được lì xì
   showMoneyEffect(text, color) {
-    let moneyPopup = this.add.text(this.player.x + 10, this.player.y - 110, text, {
-      fontSize: '18px',
-      fill: color,
-      fontWeight: 'bold',
-    });
+    let moneyPopup = this.add.text(
+      this.player.x + 10,
+      this.player.y - 110,
+      text,
+      {
+        fontSize: '18px',
+        fill: color,
+        fontWeight: 'bold',
+      }
+    );
 
     let chatBuble = this.add
       .image(this.player.x + 60, this.player.y - 80, 'chat')
       .setScale(0.4);
-    
+
     moneyPopup.setDepth(1);
 
     this.time.delayedCall(1000, () => {
@@ -381,7 +546,7 @@ const config = {
   width: window.innerWidth,
   height: window.innerHeight,
   physics: { default: 'arcade' },
-  scene: [StartScene, GameScene, LeaderboardScene, ResultScene],
+  scene: [GameScene, LeaderboardScene, StartScene, ResultScene],
 };
 
 const game = new Phaser.Game(config);
