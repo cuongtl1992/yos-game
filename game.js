@@ -317,6 +317,7 @@ class GameScene extends Phaser.Scene {
     this.load.image('chat', 'assets/chat.png');
     this.load.image('chill_1', 'assets/chill_1.png');
     this.load.image('cup', 'assets/cup.png');
+    this.load.image('shiba', 'assets/shiba.png');
   }
 
   create() {
@@ -356,6 +357,12 @@ class GameScene extends Phaser.Scene {
       .image(80, this.scale.height / 2 - 15, 'chill_1')
       .setOrigin(0)
       .setScale(0.4);
+    
+    // Add shiba
+    this.add
+      .image(220, this.scale.height / 2 -10, 'shiba')
+      .setOrigin(0)
+      .setScale(0.065);
 
     // Nhân vật người chơi
     this.player = this.physics.add
@@ -607,7 +614,7 @@ const config = {
   width: window.innerWidth,
   height: window.innerHeight,
   physics: { default: 'arcade' },
-  scene: [StartScene, GameScene, LeaderboardScene, ResultScene],
+  scene: [GameScene, StartScene, LeaderboardScene, ResultScene],
 };
 
 const game = new Phaser.Game(config);
