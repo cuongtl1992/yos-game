@@ -1,7 +1,7 @@
 const moneyValues = [
-  { value: 5000, weight: 50 }, // 50% xuất hiện
-  { value: 10000, weight: 30 }, // 30% xuất hiện
-  { value: 20000, weight: 15 }, // 15% xuất hiện
+  { value: 5000, weight: 60 }, // 60% xuất hiện (tăng lên)
+  { value: 10000, weight: 25 }, // 25% xuất hiện
+  { value: 20000, weight: 10 }, // 10% xuất hiện
   { value: 50000, weight: 5 }, // 5% xuất hiện (hiếm nhất)
 ];
 
@@ -325,6 +325,9 @@ class GameScene extends Phaser.Scene {
       .setOrigin(0)
       .setDisplaySize(this.scale.width, this.scale.height);
 
+    // Thêm slow effect
+    this.slowEffect = 0;
+
     // Add cup go to leader board
     this.add
       .image(this.scale.width / 2 + 400, this.scale.height / 2 - 375, 'cup')
@@ -452,14 +455,15 @@ class GameScene extends Phaser.Scene {
   }
 
   update() {
+    let speed = this.slowEffect > 0 ? 100 : 300; 
     if (this.cursors.left.isDown && this.player.x > 350) {
-      this.player.setVelocityX(-300);
+      this.player.setVelocityX(-speed);
       this.player.anims.play('left', true);
     } else if (
       this.cursors.right.isDown &&
       this.player.x < this.scale.width - 300
     ) {
-      this.player.setVelocityX(300);
+      this.player.setVelocityX(speed);
       this.player.anims.play('right', true);
     } else {
       this.player.setVelocityX(0);
@@ -483,21 +487,21 @@ class GameScene extends Phaser.Scene {
     envelope.setVelocityY(speed);
     envelope.isGood = isGood;
 
-    // Nếu tổng tiền >= 50k, đôi khi sẽ rơi 2-3 bao lì xì
+    // Nếu tổng tiền >= 50k, đôi khi sẽ rơi 2-3 bao lì xì cùng lúc, luôn có ít nhất 1 dép
     if (this.totalMoney >= 50000 && Phaser.Math.Between(0, 100) > 60) {
-      let extraCount = Phaser.Math.Between(1, 2); // Rơi thêm 1 hoặc 2 bao lì xì
+      let extraCount = Phaser.Math.Between(1, 2);
       let hasBadEnvelope = false;
 
       for (let i = 0; i < extraCount; i++) {
         let extraIsGood = Phaser.Math.Between(0, 100) > badChance;
 
-        // Đảm bảo ít nhất một bao lì xì xấu nếu có nhiều bao lì xì rơi cùng lúc
+        // Đảm bảo ít nhất một bao là dép
         if (i === extraCount - 1 && !hasBadEnvelope) {
-          extraIsGood = false; // Ép một cái phải là dép
+          extraIsGood = false;
         }
 
         if (!extraIsGood) {
-          hasBadEnvelope = true; // Đánh dấu đã có dép xuất hiện
+          hasBadEnvelope = true;
         }
 
         let extraEnvelope = this.envelopes.create(
@@ -534,6 +538,7 @@ class GameScene extends Phaser.Scene {
         `Rơi mất\n${penalty.toLocaleString()}đ :(`,
         '#ff0000'
       );
+      this.slowEffect += 3;
     }
 
     this.moneyText.setText(
@@ -572,6 +577,10 @@ class GameScene extends Phaser.Scene {
     this.timeLeft--;
     this.timerText.setText('Thời gian: ' + this.timeLeft + 's');
 
+    if (this.slowEffect > 0) {
+      this.slowEffect--; // Giảm thời gian bị giảm tốc mỗi giây
+    }
+
     if (this.timeLeft <= 0) {
       localStorage.setItem('playerScore', this.totalMoney);
       this.scene.start('ResultScene');
@@ -580,16 +589,16 @@ class GameScene extends Phaser.Scene {
 
   getEnvelopeSpeed() {
     if (this.totalMoney < 40000) return 300;
-    if (this.totalMoney < 70000) return 450;
-    if (this.totalMoney < 90000) return 600;
-    return 750; // Khi gần 100,000 VND, tốc độ nhanh nhất
+    if (this.totalMoney < 70000) return 500;
+    if (this.totalMoney < 90000) return 900;
+    return 1500; // Khi gần 100,000 VND, tốc độ nhanh nhất
   }
 
   getBadEnvelopeChance() {
-    if (this.totalMoney < 40000) return 40;
-    if (this.totalMoney < 70000) return 55;
-    if (this.totalMoney < 90000) return 65;
-    return 80; // Khi gần 100,000 VND, dép xuất hiện nhiều hơn
+    if (this.totalMoney < 40000) return 50; // 50% dép, 50% lì xì tốt
+    if (this.totalMoney < 70000) return 70; // 70% dép, 30% lì xì tốt
+    if (this.totalMoney < 90000) return 85; // 85% dép, 15% lì xì tốt
+    return 98; // Khi gần 100,000 VND, 98% là dép, 2% là lì xì tốt
   }
 }
 
@@ -598,7 +607,7 @@ const config = {
   width: window.innerWidth,
   height: window.innerHeight,
   physics: { default: 'arcade' },
-  scene: [StartScene, GameScene, LeaderboardScene , ResultScene],
+  scene: [StartScene, GameScene, LeaderboardScene, ResultScene],
 };
 
 const game = new Phaser.Game(config);
