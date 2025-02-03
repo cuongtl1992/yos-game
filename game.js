@@ -357,10 +357,10 @@ class GameScene extends Phaser.Scene {
       .image(80, this.scale.height / 2 - 15, 'chill_1')
       .setOrigin(0)
       .setScale(0.4);
-    
+
     // Add shiba
     this.add
-      .image(220, this.scale.height / 2 -10, 'shiba')
+      .image(220, this.scale.height / 2 - 10, 'shiba')
       .setOrigin(0)
       .setScale(0.065);
 
@@ -405,12 +405,17 @@ class GameScene extends Phaser.Scene {
     this.cursors = this.input.keyboard.createCursorKeys();
 
     // Điểm và thời gian
-    this.totalMoney = 0;
-    this.moneyText = this.add.text(20, 20, 'Tổng tiền: 0 VND', {
-      fontSize: '18px',
-      fill: '#D80000', // Chữ đỏ
-      padding: { x: 35, y: 10 },
-    });
+    this.totalMoney = 20000;
+    this.moneyText = this.add.text(
+      20,
+      20,
+      `Tổng tiền: ${formatCurrency(this.totalMoney)} VND`,
+      {
+        fontSize: '18px',
+        fill: '#D80000', // Chữ đỏ
+        padding: { x: 35, y: 10 },
+      }
+    );
 
     // Add background image for the money text
     this.add
@@ -462,7 +467,7 @@ class GameScene extends Phaser.Scene {
   }
 
   update() {
-    let speed = this.slowEffect > 0 ? 100 : 300; 
+    let speed = this.slowEffect > 0 ? 100 : 300;
     if (this.cursors.left.isDown && this.player.x > 350) {
       this.player.setVelocityX(-speed);
       this.player.anims.play('left', true);
@@ -540,16 +545,20 @@ class GameScene extends Phaser.Scene {
     } else {
       let penalty = pickMoneyValue(); // Random số tiền bị mất
       this.totalMoney -= penalty;
-      if (this.totalMoney < 0) this.totalMoney = 0;
-      this.showMoneyEffect(
-        `Rơi mất\n${penalty.toLocaleString()}đ :(`,
-        '#ff0000'
-      );
+      if (this.totalMoney < 20000) {
+        this.totalMoney = 20000;
+        this.showMoneyEffect(`Cố lên\nhết tiền để trừ\nrồi!`, '#ff0000');
+      } else {
+        this.showMoneyEffect(
+          `Rơi mất\n${penalty.toLocaleString()}đ :(`,
+          '#ff0000'
+        );
+      }
       this.slowEffect += 3;
     }
 
     this.moneyText.setText(
-      'Tổng tiền: ' + this.totalMoney.toLocaleString() + ' VND'
+      'Tổng tiền: ' + formatCurrency(this.totalMoney) + ' VND'
     );
     envelope.destroy();
   }
