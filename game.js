@@ -614,7 +614,7 @@ const config = {
   width: window.innerWidth,
   height: window.innerHeight,
   physics: { default: 'arcade' },
-  scene: [GameScene, StartScene, LeaderboardScene, ResultScene],
+  scene: [StartScene, GameScene, LeaderboardScene, ResultScene],
 };
 
 const game = new Phaser.Game(config);
